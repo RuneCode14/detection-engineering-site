@@ -308,9 +308,11 @@ review_rule() {
     fi
     
     # Show improved rule template
-    echo "════════════════════════════════════════════════════════════════════"
-    echo "IMPROVED RULE TEMPLATE:"
-    echo "════════════════════════════════════════════════════════════════════"
+    echo ""
+    echo "╔══════════════════════════════════════════════════════════════════╗"
+    echo "║           FINAL IMPROVED YARA RULE                               ║"
+    echo "║           (Production-Ready)                                     ║"
+    echo "╚══════════════════════════════════════════════════════════════════╝"
     echo ""
     
     # Generate improved rule
@@ -323,12 +325,27 @@ review_rule() {
     
     # Replace original with improved if user wants
     if [ -f "$improved_rule" ]; then
-        log_info "Improved rule saved to: $improved_rule"
+        # Always show the improved rule path
+        log_success "IMPROVED RULE saved to: $improved_rule"
         
         # If output was specified, use improved version
         if [ -n "$OUTPUT" ]; then
             cp "$improved_rule" "$OUTPUT"
+            # Also save original for comparison
+            cp "$rule_file" "${OUTPUT%.yar}_original.yar"
             log_success "Final rule (reviewed) saved to: $OUTPUT"
+            log_info "Original yarGen output saved to: ${OUTPUT%.yar}_original.yar"
+        fi
+        
+        # ALWAYS display the rule at the end
+        echo ""
+        echo ">>> RULE GENERATION COMPLETE <<<"
+        echo ""
+        echo "Use this rule:"
+        if [ -n "$OUTPUT" ]; then
+            echo "  cat $OUTPUT"
+        else
+            echo "  cat $improved_rule"
         fi
     fi
 }
