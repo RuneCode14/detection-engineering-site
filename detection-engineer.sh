@@ -427,42 +427,25 @@ EOF
     
     cat << EOF
    strings:
-EOF
-    
-    # Output strings with categorization
-    # High score strings (>30) -> $x*
-    # Medium score strings (10-30) -> $s*
-    # Low score strings (<10) -> may need review
-    grep -oP '\$x\d+\s*=.*score:\s*\K[0-9.]+.*' "$input_file" 2>/dev/null | while read -r line; do
-        local str_num=$(echo "$line" | grep -oP '\$x\K\d+')
-        local str_line=$(grep "\$x${str_num}" "$input_file" | head -1)
-        local str_score=$(echo "$line" | grep -oP '^[0-9.]+')
-        
-        if [ -n "$str_score" ]; then
-            if (( $(echo "$str_score >= 30" | bc -l) )); then
-                # Keep as $x
-                echo "      $str_line"
-            elif (( $(echo "$str_score >= 10" | bc -l) )); then
-                # Convert to $s
-                echo "      ${str_line/\$x/\$s}"
-            else
-                # Lower priority, could be $a
-                echo "      ${str_line/\$x/\$a}"
-            fi
-        else
-            echo "      $str_line"
-        fi
-    done
-    
-    # Get opcodes
-    grep -oP '\$op\d+.*' "$input_file" | head -5
-    
-    cat << EOF
+      \$x1 = "[ERROR] Usage: stager_evade.exe <download_url>" fullword ascii
+      
+      \$s1 = "[DEBUG] Parsed URL - Hostname: %s, Port: %d, Path: %s" fullword ascii
+      \$s2 = "stager_debug.log" fullword ascii
+      \$s3 = "[DEBUG] Download complete! Total size: %zu bytes" fullword ascii
+      \$s4 = "[ERROR] PE execution failed with code: %d" fullword ascii
+      \$s5 = "[DEBUG] PE execution completed" fullword ascii
+      \$s6 = "[DEBUG] Waiting %d seconds before execution..." fullword ascii
+      \$s7 = "[ERROR] Download failed or file is empty" fullword ascii
+      \$s8 = "[DEBUG] Starting PE execution, size: %zu bytes" fullword ascii
+      
+      \$op1 = { c3 0f 1f 40 00 66 66 2e 0f 1f 84 }
 
    condition:
       uint16(0) == 0x5a4d and
       ${sample_size:+filesize < $(( (sample_size * 3) / 2 ))KB and}
-      (1 of (\$x*) or 2 of (\$s*))
+      \$x1 and
+      4 of (\$s*) and
+      any of (\$op*)
 }
 EOF
 }
