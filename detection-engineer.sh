@@ -323,6 +323,25 @@ review_rule() {
     echo "════════════════════════════════════════════════════════════════════"
     echo ""
     
+    # COMPILE CHECK: Verify the rule compiles
+    log_info "Validating rule compilation..."
+    if command -v yara >/dev/null 2>&1; then
+        if yara -c "$improved_rule" /dev/null 2>/dev/null; then
+            log_success "Rule compiles successfully!"
+        else
+            log_error "Rule compilation FAILED!"
+            echo ""
+            echo "⚠️  ERRORS:"
+            yara -c "$improved_rule" /dev/null 2>&1 | head -10
+            echo ""
+            echo "💡 The rule needs manual fixes or LLM review."
+            echo "   Run: yara-compile-loop.sh $improved_rule"
+        fi
+    else
+        log_warn "yara binary not found - skipping compile check"
+        log_info "Install yara to enable automatic validation"
+    fi
+    
     # Replace original with improved if user wants
     if [ -f "$improved_rule" ]; then
         # Always show the improved rule path
